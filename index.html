@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>نظام إدارة الدعم المتكامل - Expert Dashboard</title>
+    <link rel="stylesheet" href="style.css?v=3.1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getFirestore, collection, query, onSnapshot, doc, updateDoc, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+        import { firebaseConfig } from './firebase-config.js';
+        
+        window.firebaseApp = initializeApp(firebaseConfig);
+        window.db = getFirestore(window.firebaseApp);
+        window.auth = getAuth(window.firebaseApp);
+        window.collection = collection;
+        window.query = query;
+        window.onSnapshot = onSnapshot;
+        window.doc = doc;
+        window.updateDoc = updateDoc;
+        window.orderBy = orderBy;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.signOut = signOut;
+        window.onAuthStateChanged = onAuthStateChanged;
+    </script>
+    <script type="module" src="script.js"></script>
+</head>
+<body>
+    <!-- صفحة تسجيل الدخول - تصميم فاخر -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-grid">
+            <div class="login-brand">
+                <div class="brand-content">
+                    <div class="brand-logo">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="48" height="48" rx="16" fill="url(#brandGrad)"/>
+                            <path d="M24 14L26.5 20.5L33 21L28 25.5L29.5 32L24 28.5L18.5 32L20 25.5L15 21L21.5 20.5L24 14Z" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <defs>
+                                <linearGradient id="brandGrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#6366f1"/>
+                                    <stop offset="1" stop-color="#8b5cf6"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h1>LangHub Support</h1>
+                    <p>نظام إدارة الدعم الفني المتكامل</p>
+                </div>
+            </div>
+            <div class="login-form-wrapper">
+                <div class="login-card">
+                    <div class="login-header">
+                        <h2>مرحباً بعودتك</h2>
+                        <p>سجل الدخول للوصول إلى لوحة التحكم</p>
+                    </div>
+                    <form id="loginForm" class="login-form">
+                        <div class="input-group">
+                            <label>البريد الإلكتروني</label>
+                            <div class="input-icon">
+                                <svg class="icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M2.5 5L10 10.5L17.5 5M2.5 5H17.5V15H2.5V5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                </svg>
+                                <input type="email" id="emailInput" placeholder="admin@supportflow.com" required>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>كلمة المرور</label>
+                            <div class="input-icon">
+                                <svg class="icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M5.83333 8.33333V5.83333C5.83333 3.53233 7.69899 1.66667 10 1.66667C12.301 1.66667 14.1667 3.53233 14.1667 5.83333V8.33333M10 13.3333V15M6.66667 18.3333H13.3333C14.8061 18.3333 16 17.1394 16 15.6667V11C16 9.52724 14.8061 8.33333 13.3333 8.33333H6.66667C5.19391 8.33333 4 9.52724 4 11V15.6667C4 17.1394 5.19391 18.3333 6.66667 18.3333Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                                </svg>
+                                <input type="password" id="passwordInput" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        <button type="submit" id="loginBtn" class="login-submit">
+                            <span>تسجيل الدخول</span>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M4.16667 10H15.8333M15.8333 10L10 4.16667M15.8333 10L10 15.8333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </form>
+                    <div id="loginError" class="login-error" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لوحة التحكم الرئيسية - تصميم حديث -->
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- الشريط الجانبي الجديد -->
+        <aside class="sidebar-new">
+            <div class="sidebar-header-new">
+                <div class="logo-new">
+                    <div class="logo-mark"></div>
+                    <div class="logo-text-new">
+                        <h3>LangHub Support</h3>
+                        <span>Admin Panel</span>
+                    </div>
+                </div>
+                <button class="collapse-btn" id="collapseSidebar">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M15 10H5M5 10L8 7M5 10L8 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card-new">
+                    <div class="stat-icon-new" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                            <path d="M7.33333 13.75L10.0833 16.5L17.4167 9.16667M11 19.25C16.5228 19.25 21 14.7728 21 9.25C21 3.72715 16.5228 0.25 11 0.25C5.47715 0.25 1 3.72715 1 9.25C1 14.7728 5.47715 19.25 11 19.25Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info-new">
+                        <span class="stat-value-new" id="usersCount">0</span>
+                        <span class="stat-label-new">مستخدم نشط</span>
+                    </div>
+                </div>
+                <div class="stat-card-new">
+                    <div class="stat-icon-new" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                            <path d="M7 11H15M11 7V15M19.25 11C19.25 15.5563 15.5563 19.25 11 19.25C6.44365 19.25 2.75 15.5563 2.75 11C2.75 6.44365 6.44365 2.75 11 2.75C15.5563 2.75 19.25 6.44365 19.25 11Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info-new">
+                        <span class="stat-value-new" id="totalTickets">0</span>
+                        <span class="stat-label-new">تذاكر نشطة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="search-section">
+                <div class="search-wrapper">
+                    <svg class="search-icon-new" width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M8.25 14.25C11.5637 14.25 14.25 11.5637 14.25 8.25C14.25 4.93629 11.5637 2.25 8.25 2.25C4.93629 2.25 2.25 4.93629 2.25 8.25C2.25 11.5637 4.93629 14.25 8.25 14.25Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                        <path d="M15.75 15.75L12.4875 12.4875" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="بحث عن مستخدم..." class="search-input-new">
+                </div>
+            </div>
+
+            <div class="conversations-header-new">
+                <span>جميع المحادثات</span>
+                <span class="badge-new" id="conversationsCount">0</span>
+            </div>
+
+            <div class="conversations-list-new" id="conversationsList">
+                <div class="loading-state">
+                    <div class="loading-spinner-new"></div>
+                    <p>جاري التحميل...</p>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="theme-toggle-new" id="themeToggleBtn">
+                    <svg class="theme-icon-light" width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M9 1V2M9 16V17M2.5 3.5L3.5 4.5M14.5 14.5L15.5 15.5M1 9H2M16 9H17M3.5 14.5L2.5 15.5M15.5 3.5L14.5 4.5M12.5 9C12.5 10.933 10.933 12.5 9 12.5C7.067 12.5 5.5 10.933 5.5 9C5.5 7.067 7.067 5.5 9 5.5C10.933 5.5 12.5 7.067 12.5 9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                    </svg>
+                    <svg class="theme-icon-dark" width="18" height="18" viewBox="0 0 18 18" fill="none" style="display: none;">
+                        <path d="M9 1C10.75 2.5 12 4.5 12 7C12 10.5 9 13.5 5.5 13.5C4.5 13.5 3.5 13.2 2.5 12.7C4 15 7 16.5 10 16.5C14.5 16.5 18 13 18 8.5C18 5.5 16 2.5 13 1H9Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    </svg>
+                </button>
+                <button class="logout-new" id="sidebarLogoutBtn">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M6 6L3 9M3 9L6 12M3 9H12M13 3H15C16.1046 3 17 3.89543 17 5V13C17 14.1046 16.1046 15 15 15H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                    <span>تسجيل الخروج</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- منطقة المحادثة الرئيسية الجديدة -->
+        <main class="chat-main">
+            <!-- Mobile Top Bar (visible on mobile only) -->
+            <div class="mobile-top-bar" id="mobileTopBar">
+                <button class="menu-toggle-btn" id="mobileMenuToggleBtn" title="عرض المحادثات">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="mobile-logo-text">SupportFlow</div>
+            </div>
+
+            <div class="chat-header-new" id="chatHeader" style="display: none;">
+                <div class="user-info-new">
+                    <!-- Menu Toggle Button for Mobile Chat View -->
+                    <button class="menu-toggle-btn header-menu-btn" id="headerMenuToggleBtn" title="عرض المحادثات">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="user-avatar-new" id="userAvatar">
+                        <span>👤</span>
+                    </div>
+                    <div class="user-details-new">
+                        <h3 id="userName">اسم المستخدم</h3>
+                        <div class="user-status-new">
+                            <span class="status-dot" id="userStatusDot"></span>
+                            <span id="userStatus">غير متصل</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-actions-new">
+                    <div class="action-dropdown">
+                        <!-- Hidden native select for script compatibility -->
+                        <select id="statusDropdown" class="status-select" style="display: none;">
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Solved">Solved</option>
+                        </select>
+                        
+                        <!-- Premium Custom Dropdown Component -->
+                        <div class="custom-dropdown-container" id="statusDropdownContainer">
+                            <button type="button" class="custom-dropdown-trigger status-pending" id="statusDropdownTrigger">
+                                <span class="trigger-text">⏳ قيد الانتظار</span>
+                                <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            <div class="custom-dropdown-menu" id="statusDropdownMenu" style="display: none;">
+                                <div class="dropdown-item" data-value="Pending">
+                                    <span class="item-emoji">⏳</span>
+                                    <span class="item-text">قيد الانتظار</span>
+                                </div>
+                                <div class="dropdown-item" data-value="In Progress">
+                                    <span class="item-emoji">🔄</span>
+                                    <span class="item-text">قيد المعالجة</span>
+                                </div>
+                                <div class="dropdown-item" data-value="Solved">
+                                    <span class="item-emoji">✅</span>
+                                    <span class="item-text">تم الحل</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="icon-btn" id="toggleReplyBtn" title="قفل المحادثة">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </button>
+                        <button class="icon-btn" id="showInfoBtn" title="معلومات التذكرة">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                <path d="M9 16.5C13.1421 16.5 16.5 13.1421 16.5 9C16.5 4.85786 13.1421 1.5 9 1.5C4.85786 1.5 1.5 4.85786 1.5 9C1.5 13.1421 4.85786 16.5 9 16.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M9 12V9M9 6H9.0075" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- لوحة المعلومات الجديدة -->
+            <div class="info-panel-new" id="infoPanel" style="display: none;">
+                <div class="info-panel-header">
+                    <div class="info-title">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18Z" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M10 14V10M10 6H10.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <h4>تفاصيل التذكرة</h4>
+                    </div>
+                    <button class="close-info-new" id="closeInfoBtn">✕</button>
+                </div>
+                <div class="info-panel-body" id="infoContent"></div>
+            </div>
+
+            <!-- منطقة الرسائل الجديدة -->
+            <div class="messages-area" id="messagesContainer">
+                <div class="empty-state-new" id="emptyState">
+                    <div class="empty-illustration">
+                        <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+                            <circle cx="60" cy="60" r="50" fill="#f0f4ff" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="8 8"/>
+                            <path d="M45 50H75M45 60H65M45 70H55" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/>
+                            <circle cx="85" cy="45" r="8" fill="#6366f1" stroke="white" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>مرحباً بك في SupportFlow</h3>
+                    <p>اختر محادثة من القائمة للبدء في تقديم الدعم</p>
+                </div>
+                <div class="messages-list-new" id="messagesList"></div>
+                <div id="messagesEnd"></div>
+            </div>
+
+            <!-- شريط الإرسال الجديد -->
+            <div class="reply-area-new" id="replyArea" style="display: none;">
+                <div id="editModeIndicator" class="edit-mode-indicator" style="display: none;">
+                    <span class="edit-indicator-text">📝 أنت تقوم بتعديل الرسالة الحالية...</span>
+                    <button type="button" id="cancelEditModeBtn" class="cancel-edit-btn">إلغاء التعديل</button>
+                </div>
+                <div class="reply-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        placeholder="اكتب ردك هنا..."
+                        rows="1"
+                        class="message-input-new"
+                    ></textarea>
+                    <button id="sendBtn" class="send-btn-new" disabled>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M2.5 10L17.5 2.5L10 17.5L8.33333 11.6667L2.5 10Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            <path d="M8.33333 11.6667L17.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>إرسال</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+        
+        <div id="toast" class="toast-new"></div>
+        
+        <!-- Sidebar overlay for mobile drawers -->
+        <div class="sidebar-overlay" id="sidebarOverlay" style="display: none;"></div>
+    </div>
+</body>
+</html>
